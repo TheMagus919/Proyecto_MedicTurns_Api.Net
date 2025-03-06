@@ -30,7 +30,7 @@ public class Estudio{
 
     [ForeignKey(nameof(IdEspecialidades))]
     public Especialidad? especialidad { get; set;}
-    public ICollection<Turno> Turno { get; set; }
+    
 
 }
 }

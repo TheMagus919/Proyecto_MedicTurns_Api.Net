@@ -10,6 +10,5 @@ public class Especialidad{
     [Required(ErrorMessage = "El campo Nombre es obligatorio")]
     public string Nombre { get; set;}
 
-    public ICollection<Estudio> estudio { get; set; }
 }
 }

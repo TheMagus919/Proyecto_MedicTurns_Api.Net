@@ -44,7 +44,7 @@ public class Paciente{
     public int IdRiesgo { get; set;}
 
     [ForeignKey(nameof(IdRiesgo))]
-    public Riesgo riesgo { get; set;}
+    public Riesgo? riesgo { get; set;}
 
 }
 }

@@ -11071,11 +11071,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\agust\\OneDrive\\Escritorio\\MediTurns\\MediTurns.csproj",
+      "projectUniqueName": "C:\\Users\\agust\\OneDrive\\Escritorio\\uni\\MediTurns\\MediTurns.csproj",
       "projectName": "MediTurns",
-      "projectPath": "C:\\Users\\agust\\OneDrive\\Escritorio\\MediTurns\\MediTurns.csproj",
+      "projectPath": "C:\\Users\\agust\\OneDrive\\Escritorio\\uni\\MediTurns\\MediTurns.csproj",
       "packagesPath": "C:\\Users\\agust\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\agust\\OneDrive\\Escritorio\\MediTurns\\obj\\",
+      "outputPath": "C:\\Users\\agust\\OneDrive\\Escritorio\\uni\\MediTurns\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\agust\\AppData\\Roaming\\NuGet\\NuGet.Config"

@@ -25,10 +25,14 @@ namespace MediTurns.Controllers
 
         // GET: /Turnos
         [HttpGet]
-        public async Task<ActionResult<Turno>> Get()
+        public async Task<ActionResult<IEnumerable<Turno>>> Get()
 		{
 			try
-			{
+			{   
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return Unauthorized("Token inválido o expirado.");
+                }
 				var claimsList = User.Claims.ToList();
                 int Rol = int.Parse(claimsList[2].Value);
                 int id = int.Parse(claimsList[1].Value);
@@ -42,6 +46,10 @@ namespace MediTurns.Controllers
                                         .Include(t=>t.paciente)
                                             .ThenInclude(p=>p.riesgo)
                                         .Where(t=>t.IdUsuario==id && t.FechaTurno.Value.Date == fechaHoy.Date).ToListAsync();
+                    if (listaTurnos.Count == 0)
+                    {
+                        return NotFound("No se encontraron turnos.");
+                    }
                     return Ok(listaTurnos);
                 }else{
                     return BadRequest("No tienes permisos");
@@ -70,6 +78,8 @@ namespace MediTurns.Controllers
                                     .ThenInclude(e=>e.riesgo)
                                 .Include(t=>t.paciente)
                                     .ThenInclude(p=>p.riesgo)
+                                .Include(t=>t.usuario)
+                                    .ThenInclude(e=>e.especialidad)
                                 .SingleOrDefaultAsync(x=>x.IdTurno==id);
                     return Ok(turno);
                 }else{
@@ -84,23 +94,33 @@ namespace MediTurns.Controllers
 
         // GET: /Turnos/historial/42278146
         [HttpGet("historial/{dni}")]
-        public async Task<ActionResult<Turno>> GetHistorial(int dni)
+        public async Task<ActionResult<IEnumerable<Turno>>> GetHistorial([FromRoute]int dni)
 		{
 			try
-			{
+			{   
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return Unauthorized("Token inválido o expirado.");
+                }
 				var claimsList = User.Claims.ToList();
                 int Rol = int.Parse(claimsList[2].Value);
                 int idUser = int.Parse(claimsList[1].Value);
                 if(Rol==1 || Rol==2){
-                    var listaTurnos = contexto.Turnos
-                                        .Include(t=>t.estudio)
-                                            .ThenInclude(e=>e.especialidad)
-                                        .Include(x=>x.estudio)
-                                            .ThenInclude(e=>e.riesgo)
-                                        .Include(t=>t.paciente)
-                                            .ThenInclude(p=>p.riesgo)
-                                        .Where(x => x.paciente.Dni==dni.ToString()).ToList();;
-                    return Ok(listaTurnos);
+                    var turnos = contexto.Turnos
+                     .Include(t => t.estudio)
+                         .ThenInclude(e => e.especialidad)
+                     .Include(t => t.estudio)
+                         .ThenInclude(e => e.riesgo)
+                     .Include(t => t.paciente)
+                         .ThenInclude(p => p.riesgo)
+                     .Include(t => t.usuario)
+                     .Where(x => x.paciente.Dni.Equals(dni.ToString())).ToList();
+                    Console.WriteLine(turnos[0].IdPaciente);
+                    if (turnos.Count == 0)
+                    {
+                        return NotFound("No se encontraron turnos para el DNI proporcionado.");
+                    }
+                    return Ok(turnos);
                 }else{
                     return BadRequest("No tienes permisos");
                 }
@@ -113,17 +133,21 @@ namespace MediTurns.Controllers
 
         //PUT: /Turnos/editar/5
         [HttpPut("editar/{id}")]
-        public async Task<ActionResult<Turno>> Editar(int id, [FromForm] Turno turno)
+        public async Task<ActionResult<Turno>> Editar(int id, bool asistio)
 		{
 			try
 			{   
-                if(turno != null){
-                    contexto.Turnos.Update(turno);
-                    await contexto.SaveChangesAsync();
-                    return Ok(turno);
-                }else{
-                    return BadRequest("No es posible dejar campos vacios");
+                var turno = await contexto.Turnos.FindAsync(id);
+                if (turno == null)
+                {
+                    return NotFound($"No se encontró un turno con el ID {id}.");
                 }
+
+                Console.WriteLine(asistio);
+                turno.Asistio = asistio;
+
+                await contexto.SaveChangesAsync();
+                return Ok(turno);
 
 			}
 			catch (Exception ex)
@@ -131,14 +155,22 @@ namespace MediTurns.Controllers
 				return BadRequest(ex.Message);
 			}
 		}
+
         //PUT: /Turnos/observacion/5
         [HttpPut("observacion/{id}")]
-        public async Task<ActionResult<Turno>> Observacion(int id, [FromForm] Turno turno)
+        public async Task<ActionResult<Turno>> Observacion(int id, string observacion)
 		{
 			try
-			{   
-                if(turno != null){
-                    contexto.Turnos.Update(turno);
+			{   if(observacion != null){
+                    var turno = await contexto.Turnos.FindAsync(id);
+                    if (turno == null)
+                    {
+                        return NotFound($"No se encontró un turno con el ID {id}.");
+                    }
+
+                    Console.WriteLine(observacion);
+                    turno.observaciones = observacion;
+
                     await contexto.SaveChangesAsync();
                     return Ok(turno);
                 }else{
@@ -151,6 +183,7 @@ namespace MediTurns.Controllers
 				return BadRequest(ex.Message);
 			}
 		}
+
         // POST: /Turnos/crear
         [HttpPost("crear")]
         public async Task<ActionResult<Turno>> Post([FromBody] Turno turno)

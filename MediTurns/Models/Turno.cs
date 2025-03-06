@@ -34,5 +34,8 @@ public class Turno{
     [ForeignKey(nameof(IdEstudio))]
     public Estudio? estudio { get; set; }
 
+    [ForeignKey(nameof(IdUsuario))]
+    public Usuario? usuario { get; set; }
+
 }
 }

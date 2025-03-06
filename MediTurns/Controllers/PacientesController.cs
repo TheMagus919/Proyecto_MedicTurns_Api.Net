@@ -24,15 +24,19 @@ namespace MediTurns.Controllers
 		}
 
         // GET: /Pacientes/42278146
-        [HttpGet("{dni}")]
-        public async Task<ActionResult<Paciente>> Get(int dni)
+        [HttpGet("{Dni}")]
+        public async Task<ActionResult<Paciente>> Get(string Dni)
 		{
 			try
-			{
+			{   
 				var claimsList = User.Claims.ToList();
                 int Rol = int.Parse(claimsList[2].Value);
                 if(Rol==1 || Rol==2){
-                    var paciente = await contexto.Pacientes.Include(p=>p.riesgo).SingleOrDefaultAsync(p=>p.Dni==dni.ToString());
+                    var paciente = await contexto.Pacientes.Include(p=>p.riesgo).SingleOrDefaultAsync(p=>p.Dni==Dni);
+                    if (paciente == null)
+                    {
+                        return NotFound($"Paciente con DNI {Dni} no encontrado");
+                    }
                     return Ok(paciente);
                 }else{
                     return BadRequest("No tienes permisos");
@@ -43,35 +47,86 @@ namespace MediTurns.Controllers
 				return BadRequest(ex.Message);
 			}
 		}
-
-        // POST: /Pacientes/crear
         [HttpPost("crear")]
-        public async Task<ActionResult<Paciente>> Post([FromForm] Paciente paciente)
-		{
-			try
-			{   
-                Console.WriteLine(paciente);
-                if(paciente != null){
+        public async Task<ActionResult<Paciente>> Post(
+            [FromForm(Name = "Nombre")] string nombre,
+            [FromForm(Name = "Apellido")] string apellido,
+            [FromForm(Name = "Dni")] string dni,
+            [FromForm(Name = "Cuil")] string cuil,
+            [FromForm(Name = "Email")] string email,
+            [FromForm(Name = "Telefono")] string telefono,
+            [FromForm(Name = "ObraSocial")] string obraSocial,
+            [FromForm(Name = "Direccion")] string direccion,
+            [FromForm(Name = "GrupoSanguineo")] string grupoSanguineo,
+            [FromForm(Name = "Alergias")] string alergias,
+            [FromForm(Name = "IdRiesgo")] int idRiesgo)
+        {
+            try
+            {
+                var paciente = new Paciente
+                {
+                    Nombre = nombre,
+                    Apellido = apellido,
+                    Dni = dni,
+                    Cuil = cuil,
+                    Email = email,
+                    Telefono = telefono,
+                    ObraSocial = obraSocial,
+                    Direccion = direccion,
+                    GrupoSanguineo = grupoSanguineo,
+                    Alergias = alergias,
+                    IdRiesgo = idRiesgo
+                };
+
+                if (paciente != null)
+                {
                     contexto.Pacientes.Add(paciente);
                     await contexto.SaveChangesAsync();
                     return CreatedAtAction(nameof(Get), new { id = paciente.IdPaciente }, paciente);
-                }else{
-                    return BadRequest("No es posible dejar campos vacios");
                 }
+                else
+                {
+                    return BadRequest("No es posible dejar campos vacíos");
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error: {ex.Message} | StackTrace: {ex.StackTrace}");
+            }
+        }
 
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(ex.Message);
-			}
-		}
-        
         // PUT: /Pacientes/5
-        [HttpPut("{id}")]
-        public async Task<ActionResult<Paciente>> Put(int id, [FromForm] Paciente paciente)
+        [HttpPut("editar/{id}")]
+        public async Task<ActionResult<Paciente>> Put([FromRoute]int id, 
+            [FromForm(Name = "Nombre")] string nombre,
+            [FromForm(Name = "Apellido")] string apellido,
+            [FromForm(Name = "Email")] string email,
+            [FromForm(Name = "Dni")] string dni,
+            [FromForm(Name = "Cuil")] string cuil,
+            [FromForm(Name = "Telefono")] string telefono,
+            [FromForm(Name = "ObraSocial")] string obraSocial,
+            [FromForm(Name = "Direccion")] string direccion,
+            [FromForm(Name = "GrupoSanguineo")] string grupoSanguineo,
+            [FromForm(Name = "Alergias")] string alergias,
+            [FromForm(Name = "IdRiesgo")] int idRiesgo)
 		{
 			try
 			{   
+                var paciente = new Paciente
+                {   
+                    IdPaciente = id,
+                    Nombre = nombre,
+                    Apellido = apellido,
+                    Email = email,
+                    Dni = dni,
+                    Cuil = cuil,
+                    Telefono = telefono,
+                    ObraSocial = obraSocial,
+                    Direccion = direccion,
+                    GrupoSanguineo = grupoSanguineo,
+                    Alergias = alergias,
+                    IdRiesgo = idRiesgo
+                };
                 if(paciente != null){
                     contexto.Pacientes.Update(paciente);
                     await contexto.SaveChangesAsync();

@@ -10,6 +10,7 @@ using WebApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 
 namespace MediTurns.Controllers
 {	
@@ -79,21 +80,15 @@ namespace MediTurns.Controllers
         public async Task<ActionResult<Usuario>> Get()
         {	
 			var usuario = User.Identity.Name;
-			return await contexto.Usuarios.SingleOrDefaultAsync(x => x.Email == usuario);
+			return await contexto.Usuarios.Include(u=>u.rol).SingleOrDefaultAsync(x => x.Email == usuario);
         }
 		
 		// GET: Usuarios/Logout
 		[HttpGet("logout")]
 		public async Task<ActionResult> Logout()
 		{
-			await HttpContext.SignOutAsync(
-					CookieAuthenticationDefaults.AuthenticationScheme);
-			return RedirectToAction("Index", "Home");
+			return Ok( new {message = "Sesion cerrada Exitosamente."});
 		}
-
-
-		
-
 
 		[HttpGet("login")]
 		[AllowAnonymous]

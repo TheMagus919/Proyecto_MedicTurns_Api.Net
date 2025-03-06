@@ -35,5 +35,11 @@ public class Usuario{
     [AllowNull]
     public int? IdEspecialidades { get; set;}
 
+    [ForeignKey(nameof(IdEspecialidades))]
+    public Especialidad? especialidad { get; set;}
+
+    [ForeignKey(nameof(IdRol))]
+    public Rol? rol { get; set;}
+
 }
 }
